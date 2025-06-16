@@ -4,21 +4,25 @@ FROM public.ecr.aws/amazonlinux/amazonlinux:2023
 RUN yum install -y \
   gcc gcc-c++ make cmake git ninja-build \
   glibc-static libstdc++-static \
-  zlib-devel xz-devel xz-static \
-  bzip2-devel lz4-devel \
+  zlib-devel zlib-static \
+  xz-devel xz-static \
+  bzip2-devel bzip2-static \
+  lz4-devel lz4-static \
   libcurl-devel openssl-devel
 
-# Build zstd static library
+# Build zstd static library (libzstd.a)
 RUN git clone --branch v1.5.5 https://github.com/facebook/zstd.git && \
     cd zstd/build/cmake && mkdir build && cd build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release -DZSTD_BUILD_SHARED=OFF -DCMAKE_INSTALL_PREFIX=/usr && \
     make -j$(nproc) && make install && cd / && rm -rf zstd
 
-RUN yum install -y zlib-static lz4-static bzip2-static
-
-# Build Arrow
+# Set working directory for Arrow
 WORKDIR /arrow
+
+# Download Apache Arrow
 RUN git clone --branch apache-arrow-14.0.1 --depth 1 https://github.com/apache/arrow.git .
+
+# Build Apache Arrow statically
 RUN mkdir -p cpp/build && cd cpp/build && \
   cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
@@ -38,16 +42,25 @@ RUN mkdir -p cpp/build && cd cpp/build && \
     -DARROW_GANDIVA=OFF \
     -DARROW_HDFS=OFF \
     -DARROW_S3=OFF \
+    -DCMAKE_CXX_FLAGS="-Wno-maybe-uninitialized" \
     -GNinja && \
-  find /arrow -name "libarrow_util.a" || echo "❌ libarrow_util.a not found" && \
   ninja install
 
-RUN find /usr/local -name "libarrow_util.a" || echo "❌ not installed"
+# Manually install libarrow_util.a if it was built
+RUN find /arrow -name "libarrow_util.a" -exec cp {} /usr/local/lib/ \;
 
+# Confirm that libzstd.a and libarrow_util.a are available
 RUN ls -lh /usr/lib64/libzstd.a && echo "✅ libzstd.a is available"
+RUN ls -lh /usr/local/lib/libarrow_util.a && echo "✅ libarrow_util.a is available"
 
-# Strip the image of unneeded files
-RUN rm -rf /arrow
+# Optional: clean up to reduce image size
+RUN rm -rf /arrow && \
+    yum remove -y cmake git ninja-build && \
+    yum clean all && \
+    rm -rf /var/cache/yum
 
-# Final base image for building slippc
+# Make this available as a base image for slippc builds
 WORKDIR /build
+
+# Support pkg-config in downstream builds
+ENV PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig
