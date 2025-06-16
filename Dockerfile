@@ -5,16 +5,16 @@ RUN yum install -y \
   gcc gcc-c++ make cmake git ninja-build \
   glibc-static libstdc++-static \
   zlib-devel xz-devel xz-static \
-  bzip2-devel lz4-devel zstd-devel \
+  bzip2-devel lz4-devel \
   libcurl-devel openssl-devel
-
-RUN yum install -y zlib-static lz4-static bzip2-static
 
 # Build zstd static library
 RUN git clone --branch v1.5.5 https://github.com/facebook/zstd.git && \
     cd zstd/build/cmake && mkdir build && cd build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release -DZSTD_BUILD_SHARED=OFF -DCMAKE_INSTALL_PREFIX=/usr && \
     make -j$(nproc) && make install && cd / && rm -rf zstd
+
+RUN yum install -y zlib-static lz4-static bzip2-static
 
 # Build Arrow
 WORKDIR /arrow
@@ -40,6 +40,8 @@ RUN mkdir -p cpp/build && cd cpp/build && \
     -DARROW_S3=OFF \
     -GNinja && \
   ninja install
+
+RUN ls -lh /usr/lib/libzstd.a && echo "✅ libzstd.a is available"
 
 # Strip the image of unneeded files
 RUN rm -rf /arrow
