@@ -39,7 +39,10 @@ RUN mkdir -p cpp/build && cd cpp/build && \
     -DARROW_HDFS=OFF \
     -DARROW_S3=OFF \
     -GNinja && \
+  find /arrow -name "libarrow_util.a" || echo "❌ libarrow_util.a not found" && \
   ninja install
+
+RUN find /usr/local -name "libarrow_util.a" || echo "❌ not installed"
 
 RUN ls -lh /usr/lib64/libzstd.a && echo "✅ libzstd.a is available"
 
