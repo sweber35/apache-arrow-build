@@ -18,9 +18,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Login to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build Arrow base image
         run: |
-          docker build --platform=linux/amd64 -f Dockerfile -t $GHCR_IMAGE:$GHCR_TAG .
-          docker push $GHCR_IMAGE:$GHCR_TAG
+          docker build --platform=linux/amd64 -t ghcr.io/sweber35/slippc-arrow-base:latest .
+          docker push ghcr.io/sweber35/slippc-arrow-base:latest
