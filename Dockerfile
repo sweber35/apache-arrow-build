@@ -1,28 +1,38 @@
-FROM public.ecr.aws/amazonlinux/amazonlinux:2023 AS arrow-base
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023
 
-# Install build tools and Arrow dependencies
+# Install build dependencies
 RUN yum install -y \
-  gcc gcc-c++ make cmake ninja-build git \
+  gcc gcc-c++ make cmake git ninja-build \
   glibc-static libstdc++-static \
-  xz-devel zlib-devel bzip2-devel lz4-devel \
-  boost-devel libzstd pkgconf-pkg-config
+  zlib-devel xz-devel bzip2-devel lz4-devel \
+  libcurl-devel openssl-devel
 
-# Clone, build, and install Arrow + Parquet
-RUN git clone --depth=1 --branch apache-arrow-14.0.1 https://github.com/apache/arrow.git && \
-    mkdir -p arrow/cpp/build && cd arrow/cpp/build && \
-    cmake .. -GNinja \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX=/usr/local \
-        -DARROW_PARQUET=ON \
-        -DARROW_BUILD_STATIC=ON \
-        -DARROW_BUILD_SHARED=OFF \
-        -DARROW_WITH_ZSTD=ON \
-        -DARROW_WITH_LZ4=ON \
-        -DARROW_WITH_BZ2=ON \
-        -DARROW_WITH_LZMA=ON \
-        -DARROW_BUILD_BENCHMARKS=OFF \
-        -DARROW_BUILD_TESTS=OFF && \
-    ninja && ninja install
+# Build Arrow
+WORKDIR /arrow
+RUN git clone --branch apache-arrow-14.0.1 --depth 1 https://github.com/apache/arrow.git .
+RUN mkdir -p cpp/build && cd cpp/build && \
+  cmake .. \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DARROW_PARQUET=ON \
+    -DARROW_WITH_ZLIB=ON \
+    -DARROW_BUILD_STATIC=ON \
+    -DARROW_BUILD_SHARED=OFF \
+    -DARROW_USE_STATIC_CRT=ON \
+    -DARROW_SIMD_LEVEL=NONE \
+    -DARROW_COMPUTE=OFF \
+    -DARROW_CSV=OFF \
+    -DARROW_JSON=OFF \
+    -DARROW_IPC=OFF \
+    -DARROW_FILESYSTEM=OFF \
+    -DARROW_GANDIVA=OFF \
+    -DARROW_HDFS=OFF \
+    -DARROW_S3=OFF \
+    -GNinja && \
+  ninja install
 
-# Optional: confirm libs were installed
-RUN find /usr/local/lib -name '*arrow*'
+# Strip the image of unneeded files
+RUN rm -rf /arrow
+
+# Final base image for building slippc
+WORKDIR /build
