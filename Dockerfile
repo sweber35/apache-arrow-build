@@ -4,7 +4,8 @@ FROM public.ecr.aws/amazonlinux/amazonlinux:2023
 RUN yum install -y \
   gcc gcc-c++ make cmake git ninja-build \
   glibc-static libstdc++-static \
-  zlib-devel xz-devel bzip2-devel lz4-devel \
+  zlib-devel xz-devel xz-static \
+  bzip2-devel lz4-devel zstd-devel \
   libcurl-devel openssl-devel
 
 RUN yum install -y zlib-static lz4-static bzip2-static
@@ -28,7 +29,8 @@ RUN mkdir -p cpp/build && cd cpp/build && \
     -DARROW_BUILD_SHARED=OFF \
     -DARROW_USE_STATIC_CRT=ON \
     -DARROW_SIMD_LEVEL=NONE \
-    -DARROW_COMPUTE=OFF \
+    -DARROW_COMPUTE=ON \
+    -DARROW_IO=ON \
     -DARROW_CSV=OFF \
     -DARROW_JSON=OFF \
     -DARROW_IPC=OFF \
