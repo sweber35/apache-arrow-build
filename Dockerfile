@@ -7,6 +7,9 @@ RUN yum install -y \
   zlib-devel xz-devel bzip2-devel lz4-devel \
   libcurl-devel openssl-devel
 
+RUN yum install -y \
+  zlib-static lz4-static bzip2-static zstd-static
+
 # Build Arrow
 WORKDIR /arrow
 RUN git clone --branch apache-arrow-14.0.1 --depth 1 https://github.com/apache/arrow.git .
