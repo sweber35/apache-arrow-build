@@ -1,4 +1,4 @@
-FROM public.ecr.aws/amazonlinux/amazonlinux:2023 as arrow-base
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023 AS arrow-base
 
 RUN yum install -y \
   gcc gcc-c++ make cmake ninja-build git \
