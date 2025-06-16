@@ -41,7 +41,7 @@ RUN mkdir -p cpp/build && cd cpp/build && \
     -GNinja && \
   ninja install
 
-RUN ls -lh /usr/lib/libzstd.a && echo "✅ libzstd.a is available"
+RUN ls -lh /usr/lib64/libzstd.a && echo "✅ libzstd.a is available"
 
 # Strip the image of unneeded files
 RUN rm -rf /arrow
