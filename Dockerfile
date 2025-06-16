@@ -7,7 +7,13 @@ RUN yum install -y \
   zlib-devel xz-devel bzip2-devel lz4-devel \
   libcurl-devel openssl-devel
 
-RUN yum install -y zlib-static lz4-static bzip2-static zstd-static
+RUN yum install -y zlib-static lz4-static bzip2-static
+
+# Build zstd static library
+RUN git clone --branch v1.5.5 https://github.com/facebook/zstd.git && \
+    cd zstd/build/cmake && mkdir build && cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DZSTD_BUILD_SHARED=OFF -DCMAKE_INSTALL_PREFIX=/usr && \
+    make -j$(nproc) && make install && cd / && rm -rf zstd
 
 # Build Arrow
 WORKDIR /arrow
