@@ -47,11 +47,11 @@ RUN mkdir -p cpp/build && cd cpp/build && \
   ninja install
 
 # Manually install libarrow_util.a if it was built
-RUN find /arrow -name "libarrow_util.a" -exec cp {} /usr/local/lib/ \;
+RUN #find /arrow -name "libarrow_util.a" -exec cp {} /usr/local/lib/ \;
 
 # Confirm that libzstd.a and libarrow_util.a are available
 RUN ls -lh /usr/lib64/libzstd.a && echo "✅ libzstd.a is available"
-RUN ls -lh /usr/local/lib/libarrow_util.a && echo "✅ libarrow_util.a is available"
+RUN #ls -lh /usr/local/lib/libarrow_util.a && echo "✅ libarrow_util.a is available"
 
 # Optional: clean up to reduce image size
 RUN rm -rf /arrow && \
