@@ -8,7 +8,8 @@ RUN yum install -y \
   xz-devel xz-static \
   bzip2-devel bzip2-static \
   lz4-devel lz4-static \
-  libcurl-devel openssl-devel
+  libcurl-devel openssl-devel \
+  snappy snappy-devel
 
 # Build zstd static library (libzstd.a)
 RUN git clone --branch v1.5.5 https://github.com/facebook/zstd.git && \
@@ -28,7 +29,8 @@ RUN mkdir -p cpp/build && cd cpp/build && \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DARROW_PARQUET=ON \
-    -DARROW_WITH_ZLIB=ON \
+    -DARROW_WITH_ZLIB=OFF \
+    -DARROW_WITH_SNAPPY=OFF \
     -DARROW_BUILD_STATIC=ON \
     -DARROW_BUILD_SHARED=OFF \
     -DARROW_USE_STATIC_CRT=ON \
